@@ -6,6 +6,9 @@ import subprocess
 import time
 import psutil  # For finding and closing Anki
 
+from email_summary import send_learning_summary #send me a summary of what i learned today
+
+
 # Replace with your Hypothesis API token
 API_TOKEN = ""  ############### Add your Hypothes.is API key here
 url = "https://hypothes.is/api/search"
@@ -127,6 +130,7 @@ ensure_anki_is_running()
 last_run = read_last_run()
 processed_ids = read_processed_ids()
 new_processed_ids = set()
+flashcards_created = []  # Initialize flashcards list
 
 # Hypothesis API parameters
 params = {
@@ -175,6 +179,12 @@ if response.status_code == 200:
                 print(f"Error adding note: {anki_response.json()['error']}")
             else:
                 new_processed_ids.add(ann_id)
+                # Add to flashcards list for email
+                flashcards_created.append({
+                    'front': front,
+                    'back': back,
+                    'tags': tags
+                })
         except requests.exceptions.ConnectionError:
             print("Could not connect to AnkiConnect. Is Anki running?")
             break
@@ -186,6 +196,16 @@ if response.status_code == 200:
 
 else:
     print(f"Hypothesis API Error: {response.status_code} - {response.text}")
+
+# Email summary
+if flashcards_created:
+    if send_learning_summary("your_email@gmail.com", flashcards_created): ############### Add your gmail address here (the one you want to receive summaries in it)
+        print("Successfully sent learning summary email")
+    else:
+        print("Failed to send email summary")
+else:
+    print("No new flashcards to email")
+    
 
 # Close Anki after processing
 close_anki()
