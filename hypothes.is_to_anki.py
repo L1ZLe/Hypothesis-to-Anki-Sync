@@ -7,7 +7,7 @@ import time
 import psutil  # For finding and closing Anki
 
 # Replace with your Hypothesis API token
-API_TOKEN = "" ##################### add your Hypothes.is API key here
+API_TOKEN = ""  ############### Add your Hypothes.is API key here
 url = "https://hypothes.is/api/search"
 
 # Configuration files
@@ -21,7 +21,7 @@ headers = {
 
 def ensure_anki_is_running():
     """
-    Check if AnkiConnect is reachable. If not, open Anki.
+    Check if AnkiConnect is reachable. If not, open Anki using full path.
     """
     try:
         # Try to connect to AnkiConnect
@@ -30,21 +30,45 @@ def ensure_anki_is_running():
     except requests.exceptions.ConnectionError:
         # If AnkiConnect is not reachable, open Anki
         print("Anki is not running. Opening Anki...")
-        subprocess.Popen(["anki"])  # Command to open Anki
+        # Use the full path to Anki executable for cron compatibility
+        subprocess.Popen(["/usr/local/bin/anki"])
         # Wait for Anki to start (adjust sleep time if needed)
-        time.sleep(10)
+        time.sleep(15)  # Increased wait time for slower systems
+
+def sync_anki():
+    """Explicitly sync with AnkiWeb before closing"""
+    try:
+        sync_request = {
+            "action": "sync",
+            "version": 6
+        }
+        response = requests.post("http://localhost:8765", json=sync_request)
+        if response.json().get("error"):
+            print(f"Sync error: {response.json()['error']}")
+        else:
+            print("Successfully synced with AnkiWeb")
+        time.sleep(3)  # Allow sync to complete
+    except Exception as e:
+        print(f"Sync failed: {str(e)}")
 
 def close_anki():
     """
-    Close Anki after the script finishes.
+    Sync first, then close Anki.
     """
+    sync_anki()  # Sync before closing
+
+    # Find and terminate the Anki process
     for proc in psutil.process_iter(['pid', 'name']):
         if proc.info['name'] == 'anki':
             print(f"Closing Anki (PID: {proc.info['pid']})...")
             proc.terminate()  # Gracefully terminate Anki
+            time.sleep(5)  # Give OS time to process termination
             break
 
 def read_last_run():
+    """
+    Read the last run timestamp from file.
+    """
     try:
         with open(LAST_RUN_FILE, "r") as f:
             return f.read().strip()
@@ -52,10 +76,16 @@ def read_last_run():
         return "2000-01-01T00:00:00.000000+00:00"  # Default old date
 
 def write_last_run(timestamp):
+    """
+    Write the last run timestamp to file.
+    """
     with open(LAST_RUN_FILE, "w") as f:
         f.write(timestamp)
 
 def read_processed_ids():
+    """
+    Read the set of processed annotation IDs from file.
+    """
     try:
         with open(PROCESSED_IDS_FILE, "r") as f:
             return set(line.strip() for line in f)
@@ -63,11 +93,17 @@ def read_processed_ids():
         return set()
 
 def write_processed_ids(ids):
+    """
+    Write the set of processed annotation IDs to file.
+    """
     with open(PROCESSED_IDS_FILE, "w") as f:
         for ann_id in ids:
             f.write(f"{ann_id}\n")
 
 def create_anki_note(front, back, tags):
+    """
+    Create an Anki note payload.
+    """
     return {
         "action": "addNote",
         "version": 6,
@@ -92,14 +128,16 @@ last_run = read_last_run()
 processed_ids = read_processed_ids()
 new_processed_ids = set()
 
+# Hypothesis API parameters
 params = {
-    "group": "", ##################### add your Hypothes.is group id here
+    "group": "",  ############### Add your Hypothes.is group ID here
     "limit": 200,
     "sort": "created",
     "order": "asc",
     "query": f'created:>="{last_run}"'
 }
 
+# Fetch annotations from Hypothesis API
 response = requests.get(url, headers=headers, params=params)
 
 if response.status_code == 200:
