@@ -77,7 +77,7 @@ You can schedule the script to run automatically at a specific time (e.g., daily
 
 2. Add the following line to run the script daily at 11 PM:
    ```cron
-   0 23 * * * /usr/bin/python3 /path/to/hypothesis_to_anki.py
+   0 23 * * * export DISPLAY=:0 && /home/jacob/Desktop/My-Scripts/daily-knowledge-review/myenv/bin/python /home/jacob/Desktop/My-Scripts/daily-knowledge-review/hypothes.is_to_anki.py >> /home/jacob/Desktop/My-Scripts/daily-knowledge-review/cron_output.log 2>&1
    ```
 
 #### On Windows (Task Scheduler):
