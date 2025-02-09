@@ -33,13 +33,13 @@ Before using this project, ensure you have the following:
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/hypothesis-to-anki.git
+   git clone https://github.com/L1ZLe/Hypothesis-to-Anki-Sync
    cd hypothesis-to-anki
    ```
 
 2. Install the required Python packages:
    ```bash
-   pip install requests psutil
+   pip install -r requirements.txt
    ```
 
 3. Replace the placeholder API token in the script:
