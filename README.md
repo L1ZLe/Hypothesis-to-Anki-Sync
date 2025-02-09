@@ -20,11 +20,15 @@ This project leverages two of the most effective learning techniques:
 
 ---
 
-## 🛠 Features
+## 🛠 What this does ?
 ✅ **Auto-sync annotations to Anki** – Never manually create flashcards again. Your key insights from Hypothesis are automatically converted into study material.
+
 ✅ **Daily email review** – Get a summary of your new flashcards every night to reinforce learning before sleep.
+
 ✅ **Effortless knowledge retention** – Beat the forgetting curve with active recall and spaced repetition.
+
 ✅ **Boost productivity** – Save time by automating note organization and review.
+
 ✅ **Personalized learning** – Only study what *you* found important in your readings.
 
 ---
